@@ -7,5 +7,6 @@ using System.Threading.Tasks;
 namespace Y2U {
 	public class SaveData {
 		public string? SavePath { get; set; }
+		public bool DownloadThumbnail { get; set; }
 	}
 }

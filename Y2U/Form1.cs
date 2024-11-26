@@ -18,7 +18,7 @@ namespace Y2U {
 		private int status = STATUS_IDLE;
 
 		private readonly YoutubeDownload youtube = new YoutubeDownload();
-		private readonly HttpClient httpClient = new HttpClient();
+		//		private readonly HttpClient httpClient = new HttpClient();
 		private DownloadSelection userDownloadSelection = new DownloadSelection();
 
 		//private bool downloading = false;
@@ -44,7 +44,7 @@ namespace Y2U {
 			loadSavedSettings();
 			//LoadThumbnail("https://img3.gelbooru.com//images/a6/c8/a6c8bba909950809911901c9db25a268.png");// little test
 
-			debounceTimer.Interval = 250; // delay of 250 ms
+			debounceTimer.Interval = 250; // in ms
 			debounceTimer.Tick += async (s, e) => { // event will be called when the timer hits the interval
 				debounceTimer.Stop();
 				status = STATUS_GETTING_STATS;
@@ -57,7 +57,7 @@ namespace Y2U {
 					thumbnailUrl = video.Thumbnails.GetWithHighestResolution().Url;
 					LoadThumbnail(thumbnailUrl);
 					DisplayInfo(video, streamManifest);
-					UpdateQualityOptions(streamManifest, video);
+					UpdateDownloadSelections(streamManifest, video);
 
 					//by reaching here the url must be valid
 					isUrlValid = true;
@@ -85,12 +85,13 @@ namespace Y2U {
 			};
 		}
 
-		public Form1(string url, string outputPath, bool isVid, int resolution, string bitrate) : this() {
+		public Form1(string url, string outputPath, bool isVid, int resolution, string bitrate, bool downloadThumbnail) : this() {
 			textBoxUrl.Text = url;
 			textBoxSavePath.Text = outputPath;
 
 			this.checkBoxTopQualityVideo.Checked = resolution == -1;
 			this.checkBoxTopQualityAud.Checked = string.IsNullOrEmpty(bitrate);
+			this.checkBoxDownloadThumbnail.Checked = downloadThumbnail;
 
 			switch (resolution) {
 				case Resolutions.UHD:
@@ -126,12 +127,14 @@ namespace Y2U {
 			SaveData? saveData = SaveDataHandler.readSaveData();
 			if (saveData != null) {
 				this.textBoxSavePath.Text = saveData?.SavePath ?? this.textBoxSavePath.Text;
+				this.checkBoxDownloadThumbnail.Checked = saveData?.DownloadThumbnail ?? false;
 			}
 		}
 
 		private void saveSettings() {
 			SaveData saveData = new SaveData() {
-				SavePath = this.textBoxSavePath.Text
+				SavePath = this.textBoxSavePath.Text,
+				DownloadThumbnail = this.checkBoxDownloadThumbnail.Checked
 			};
 
 			SaveDataHandler.writeSaveData(saveData);
@@ -265,11 +268,12 @@ namespace Y2U {
 			labelAudioQuality.Text = $"Bitrate: {audStream.Bitrate}";
 		}
 
-		
 
-		private void UpdateQualityOptions(StreamManifest manifest, Video video) {
+
+		private void UpdateDownloadSelections(StreamManifest manifest, Video video) {
 			// TODO make less spammy
 			DownloadSelection newDownloadSelection = new DownloadSelection();
+			newDownloadSelection.downloadVideoThumbnail = this.checkBoxDownloadThumbnail.Checked;
 
 			IEnumerable<VideoOnlyStreamInfo> videoStreams = manifest.GetVideoOnlyStreams();
 			List<AudioOnlyStreamInfo> audioStreams = newDownloadSelection.sortAudioStreams(manifest.GetAudioOnlyStreams());
@@ -429,11 +433,11 @@ namespace Y2U {
 			if (string.IsNullOrEmpty(imgUrl)) { return; }
 			Uri uri = new Uri(imgUrl);
 			if (uri.Scheme != Uri.UriSchemeHttps) { return; }
-			//if (uri.Host != "i.ytimg.com") { return; } // hoping this is the same for all yt thumbnails
+			//if (uri.Host != "i.ytimg.com") { return; } // hoping this is the same for all yt thumbnails - turns out no
 			Debug.WriteLine("loading thumbnail");
 
 			try {
-				byte[] imgBytes = await httpClient.GetByteArrayAsync(imgUrl, cancellationTokenSource.Token);
+				byte[] imgBytes = await youtube.httpClient.GetByteArrayAsync(imgUrl, cancellationTokenSource.Token);
 				using (MemoryStream inMs = new MemoryStream(imgBytes)) {
 					using (MagickImage image = new MagickImage(inMs)) {
 						//change format of image to png
@@ -474,7 +478,7 @@ namespace Y2U {
 
 			status = STATUS_DOWNLOADING; // must be here to prevent soft lock
 			progressBarDownloading.Value = 0;
-			progressBarDownloading.Maximum = 4;
+			progressBarDownloading.Maximum = this.checkBoxDownloadThumbnail.Checked ? 5 : 4;
 			disableDownloadButtons();
 
 			labelStatus.Text = "Setup";
@@ -517,7 +521,7 @@ namespace Y2U {
 
 			status = STATUS_DOWNLOADING; // must be here to prevent soft lock
 			progressBarDownloading.Value = 0;
-			progressBarDownloading.Maximum = 3;
+			progressBarDownloading.Maximum = this.checkBoxDownloadThumbnail.Checked ? 4 : 3;
 			labelStatus.Text = "Setup";
 			disableDownloadButtons();
 
@@ -607,6 +611,10 @@ namespace Y2U {
 
 		private void radioButton144pVid_CheckedChanged(object sender, EventArgs e) {
 			userDownloadSelection.selectedVideoStreamKey = Resolutions.XLD;
+		}
+
+		private void checkBoxDownloadThumbnail_CheckedChanged(object sender, EventArgs e) {
+			userDownloadSelection.downloadVideoThumbnail = checkBoxDownloadThumbnail.Checked;
 		}
 
 		#endregion

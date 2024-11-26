@@ -7,10 +7,31 @@ using System.Threading.Tasks;
 using YoutubeExplode;
 using YoutubeExplode.Videos.Streams;
 using YoutubeExplode.Videos;
+using YoutubeExplode.Common;
+using System.Threading;
+using ImageMagick;
 
 namespace Y2U {
 	public class YoutubeDownload {
 		public readonly YoutubeClient YoutubeClient = new YoutubeClient();
+		public readonly HttpClient httpClient = new HttpClient();
+
+		public async Task DownloadVideoThumbnail(DownloadSelection downloadSelection, string savePath, CancellationTokenSource cancellationTokenSource) {
+			string filePath = Path.Combine(savePath, Mux.sanitizeFileName($"{downloadSelection.video.Title}_thumbnail.png"));
+			Console.WriteLine("downloading video thumbnail to: " + filePath);
+			Debug.WriteLine("downloading video thumbnail to: " + filePath);
+
+			string url = downloadSelection.video.Thumbnails.GetWithHighestResolution().Url;
+			byte[] imgBytes = await this.httpClient.GetByteArrayAsync(url, cancellationTokenSource.Token);
+			using (MemoryStream inMs = new MemoryStream(imgBytes)) {
+				using (MagickImage image = new MagickImage(inMs)) {
+					await image.WriteAsync(filePath, MagickFormat.Png);
+				}
+			}
+
+			Console.WriteLine("downloaded thumbnail");
+			Debug.WriteLine("downloaded thumbnail");
+		}
 
 		/// <summary>
 		/// Attempts to delete temporary video and audio files created by <see cref="downloadVideo(IProgress{DownloadProgress}?, string, string, string, string, CancellationTokenSource)"/>
@@ -93,12 +114,20 @@ namespace Y2U {
 				Mux mux = new Mux(videoPath, audioPath, outputPath);
 				bool successful = await mux.startVideo(streamSelections.getAudioStreamBitrate());
 
+				if (streamSelections.downloadVideoThumbnail) {
+					await Task.Delay(1000);
+					progress?.Report(new DownloadProgress() { progress = 4, label = "Downloading Thumbnail" });
+					await this.DownloadVideoThumbnail(streamSelections, savePath, cancellationTokenSource);
+				}
+
+				int progressValue = streamSelections.downloadVideoThumbnail ? 5 : 4;
+
 				if (successful) {
-					progress?.Report(new DownloadProgress() { progress = 4, label = "Complete" });
+					progress?.Report(new DownloadProgress() { progress = progressValue, label = "Complete" });
 					
 					Console.WriteLine($"Downloaded to {outputPath}");
 				} else {
-					progress?.Report(new DownloadProgress() { progress = 4, label = "Failed to Mux Audio and Video" });
+					progress?.Report(new DownloadProgress() { progress = progressValue, label = "Failed to Mux Audio and Video" });
 					
 					Console.WriteLine("Failed to Mux Audio and Video");
 				}
@@ -162,12 +191,20 @@ namespace Y2U {
 				Mux mux = new Mux("", audioPath, outputPath);
 				bool successful = await mux.startAudio(streamSelections.getAudioStreamBitrate());
 
+				if (streamSelections.downloadVideoThumbnail) {
+					await Task.Delay(1000);
+					progress?.Report(new DownloadProgress() { progress = 3, label = "Downloading Thumbnail" });
+					//Console.WriteLine("im here in the morning in the morning in the bed in the morning in the floor in the morning in the floor in the morning");
+					await this.DownloadVideoThumbnail(streamSelections, savePath, cancellationTokenSource);
+				}
+
+				int progressValue = streamSelections.downloadVideoThumbnail ? 4 : 3;
 				if(successful) {
-					progress?.Report(new DownloadProgress() { progress = 3, label = "Complete" });
+					progress?.Report(new DownloadProgress() { progress = progressValue, label = "Complete" });
 
 					Console.WriteLine($"Downloaded to {outputPath}");
 				} else {
-					progress?.Report(new DownloadProgress() { progress = 3, label = "Failed to Convert Audio" });
+					progress?.Report(new DownloadProgress() { progress = progressValue, label = "Failed to Convert Audio" });
 
 					Console.WriteLine("Failed to Convert Audio");
 				}

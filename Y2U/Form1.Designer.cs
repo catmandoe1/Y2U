@@ -37,6 +37,7 @@
 			labelStatus = new Label();
 			buttonDownloadAudio = new Button();
 			groupBoxDetails = new GroupBox();
+			checkBoxDownloadThumbnail = new CheckBox();
 			labelAudioQuality = new Label();
 			labelTopAudioQualityTitle = new Label();
 			labelVideoQuality = new Label();
@@ -219,6 +220,7 @@
 			// groupBoxDetails
 			// 
 			groupBoxDetails.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+			groupBoxDetails.Controls.Add(checkBoxDownloadThumbnail);
 			groupBoxDetails.Controls.Add(labelAudioQuality);
 			groupBoxDetails.Controls.Add(labelTopAudioQualityTitle);
 			groupBoxDetails.Controls.Add(labelVideoQuality);
@@ -234,10 +236,22 @@
 			groupBoxDetails.TabStop = false;
 			groupBoxDetails.Text = "Details";
 			// 
+			// checkBoxDownloadThumbnail
+			// 
+			checkBoxDownloadThumbnail.AutoSize = true;
+			checkBoxDownloadThumbnail.Font = new Font("Tahoma", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+			checkBoxDownloadThumbnail.Location = new Point(6, 218);
+			checkBoxDownloadThumbnail.Name = "checkBoxDownloadThumbnail";
+			checkBoxDownloadThumbnail.Size = new Size(182, 22);
+			checkBoxDownloadThumbnail.TabIndex = 8;
+			checkBoxDownloadThumbnail.Text = "Download Thumbnail";
+			checkBoxDownloadThumbnail.UseVisualStyleBackColor = true;
+			checkBoxDownloadThumbnail.CheckedChanged += checkBoxDownloadThumbnail_CheckedChanged;
+			// 
 			// labelAudioQuality
 			// 
 			labelAudioQuality.AutoSize = true;
-			labelAudioQuality.Location = new Point(24, 194);
+			labelAudioQuality.Location = new Point(24, 183);
 			labelAudioQuality.Name = "labelAudioQuality";
 			labelAudioQuality.Size = new Size(30, 18);
 			labelAudioQuality.TabIndex = 7;
@@ -247,7 +261,7 @@
 			// 
 			labelTopAudioQualityTitle.AutoSize = true;
 			labelTopAudioQualityTitle.Font = new Font("Tahoma", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-			labelTopAudioQualityTitle.Location = new Point(6, 176);
+			labelTopAudioQualityTitle.Location = new Point(6, 165);
 			labelTopAudioQualityTitle.Name = "labelTopAudioQualityTitle";
 			labelTopAudioQualityTitle.Size = new Size(145, 18);
 			labelTopAudioQualityTitle.TabIndex = 6;
@@ -256,7 +270,7 @@
 			// labelVideoQuality
 			// 
 			labelVideoQuality.AutoSize = true;
-			labelVideoQuality.Location = new Point(24, 143);
+			labelVideoQuality.Location = new Point(24, 135);
 			labelVideoQuality.Name = "labelVideoQuality";
 			labelVideoQuality.Size = new Size(30, 18);
 			labelVideoQuality.TabIndex = 5;
@@ -266,7 +280,7 @@
 			// 
 			labelTopVideoQualityTitle.AutoSize = true;
 			labelTopVideoQualityTitle.Font = new Font("Tahoma", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-			labelTopVideoQualityTitle.Location = new Point(6, 125);
+			labelTopVideoQualityTitle.Location = new Point(6, 117);
 			labelTopVideoQualityTitle.Name = "labelTopVideoQualityTitle";
 			labelTopVideoQualityTitle.Size = new Size(145, 18);
 			labelTopVideoQualityTitle.TabIndex = 4;
@@ -616,5 +630,6 @@
 		private CheckBox checkBoxTopQualityAud;
 		private RadioButton radioButton8;
 		private TextBox textBoxAudioQualityHelp;
+		private CheckBox checkBoxDownloadThumbnail;
 	}
 }

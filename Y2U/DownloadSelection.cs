@@ -33,6 +33,7 @@ namespace Y2U {
 		public IStreamInfo highestQualityAudioStream { get; set; }
 		public bool useHighestQualityVid { get; set; }
 		public bool useHighestQualityAud { get; set; }
+		public bool downloadVideoThumbnail { get; set; }
 		public int selectedAudioStreamIndex { get; set; }
 		public int selectedVideoStreamKey { get; set; }
 		public string overrideAudioSelection { get; set; }
@@ -45,6 +46,7 @@ namespace Y2U {
 
 			this.useHighestQualityVid = false;
 			this.useHighestQualityAud = false;
+			this.downloadVideoThumbnail = false;
 			this.selectedAudioStreamIndex = -1;
 			this.selectedVideoStreamKey = -1;
 		}
@@ -53,7 +55,7 @@ namespace Y2U {
 			return audioStreams.ToList().OrderByDescending(aud => aud.Bitrate).ToList(); // ???
 		}
 
-		public DownloadSelection(StreamManifest manifest, Video video) : this() {
+		public DownloadSelection(StreamManifest manifest, Video video, bool downloadVideoThumbnail) : this() {
 			this.manifest = manifest;
 			this.video = video;
 
@@ -62,6 +64,7 @@ namespace Y2U {
 
 			this.highestQualityVideoStream = videoStreams.GetWithHighestVideoQuality();
 			this.highestQualityAudioStream = audioStreams.GetWithHighestBitrate();
+			this.downloadVideoThumbnail = downloadVideoThumbnail;
 
 			// gather and sort streams
 			foreach (VideoOnlyStreamInfo vs in videoStreams) {

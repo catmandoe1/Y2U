@@ -32,6 +32,7 @@ namespace Y2U {
 				}
 
 				bool noGUI = args.Last() == "-nogui";
+				bool downloadThumbnail = false;
 				int resolution = -1;
 				string bitrate = null;
 
@@ -50,6 +51,7 @@ namespace Y2U {
 				}
 
 				for (int i = 0; i < args.Length - 1; i += 2) {
+					//Console.WriteLine(i + " " + args[i]);
 					if (args[i] == "-video") {
 						isVid = true;
 						url = args[i + 1];
@@ -85,6 +87,11 @@ namespace Y2U {
 							Console.WriteLine($"Audio quality \"{aq}\" is a not valid quality");
 							return;
 						}
+					} else if (args[i] == "-dt") {
+						downloadThumbnail = args[i + 1] == "true" || args[i + 1] == "1" || args[i + 1] == "t";
+						//Console.WriteLine(args[i + 1] == "true" || args[i + 1] == "1" || args[i + 1] == "t");
+
+
 					} else {
 						Console.WriteLine($"Invalid argument {args[i]}");
 					}
@@ -92,13 +99,13 @@ namespace Y2U {
 
 				if (!noGUI) {
 					// TODO add form thingy
-					RunForm(url, output, isVid, resolution, bitrate);
+					RunForm(url, output, isVid, resolution, bitrate, downloadThumbnail);
 				} else {
 					YoutubeDownload youtube = new YoutubeDownload();
 					Console.WriteLine("Getting video details");
 					Video video = youtube.YoutubeClient.Videos.GetAsync(url).Result;
 					StreamManifest streamManifest = youtube.YoutubeClient.Videos.Streams.GetManifestAsync(url).Result;
-					DownloadSelection selection = new DownloadSelection(streamManifest, video);
+					DownloadSelection selection = new DownloadSelection(streamManifest, video, downloadThumbnail);
 
 					selection.overrideAudioSelection = bitrate;
 					selection.selectedVideoStreamKey = resolution;
@@ -163,9 +170,9 @@ namespace Y2U {
 			Application.Run(new Form1());
 		}
 
-		public static void RunForm(string url, string outputPath, bool isVid, int resolution, string bitrate) {
+		public static void RunForm(string url, string outputPath, bool isVid, int resolution, string bitrate, bool downloadThumbnail) {
 			ApplicationConfiguration.Initialize();
-			Application.Run(new Form1(url, outputPath, isVid, resolution, bitrate));
+			Application.Run(new Form1(url, outputPath, isVid, resolution, bitrate, downloadThumbnail));
 		}
 
 		public static void help() {
@@ -197,6 +204,7 @@ namespace Y2U {
 			Console.WriteLine($"                                        {Resolutions.AUDIO_VERY_LOW}\n");
 
 			Console.WriteLine("    -o <directory>                Specifies the output directory, selected current directory if left blank (optional)");
+			Console.WriteLine("    -dt <true | false>            Download or not the video's thumbnail (default = false, optional)");
 			Console.WriteLine("    -nogui                        Use no graphical user interface (MUST be the LAST argument & optional)\n");
 
 			Console.WriteLine("Examples:");
@@ -214,6 +222,9 @@ namespace Y2U {
 
 			Console.WriteLine("    Audio download (specific quality of 128kbps):");
 			Console.WriteLine($"        Y2U.exe -video \"full youtube url\" -vq {Resolutions.AUDIO_MEDIUM}\n");
+
+			Console.WriteLine("    Video and thumbnail download (current directory):");
+			Console.WriteLine("        Y2U.exe -video \"full youtube url\" -dt true\n");
 
 			Console.WriteLine("    No GUI:");
 			Console.WriteLine("        Y2U.exe -video \"full youtube url\" -nogui\n");
