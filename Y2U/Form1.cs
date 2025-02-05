@@ -29,6 +29,8 @@ namespace Y2U {
 		private string videoPath = "";
 		private string audioPath = "";
 
+		private IMagickImage? thumbnailSourceImg = null;
+
 		// to avoid spamming requests
 		private System.Windows.Forms.Timer debounceTimer = new System.Windows.Forms.Timer();
 		private System.Windows.Forms.Timer resizeThumbnailLoader = new System.Windows.Forms.Timer();
@@ -78,10 +80,11 @@ namespace Y2U {
 				}
 			};
 
-			resizeThumbnailLoader.Interval = 250;
+			resizeThumbnailLoader.Interval = 25;
 			resizeThumbnailLoader.Tick += (s, e) => {
 				resizeThumbnailLoader.Stop();
-				LoadThumbnail(this.thumbnailUrl);
+				//LoadThumbnail(this.thumbnailUrl);
+				ResizeThumbnail();
 			};
 		}
 
@@ -439,24 +442,46 @@ namespace Y2U {
 			try {
 				byte[] imgBytes = await youtube.httpClient.GetByteArrayAsync(imgUrl, cancellationTokenSource.Token);
 				using (MemoryStream inMs = new MemoryStream(imgBytes)) {
-					using (MagickImage image = new MagickImage(inMs)) {
-						//change format of image to png
-						image.Format = MagickFormat.Png;
-						//resize image to size of image box
-						image.Resize(pictureBoxThumbnail.Size.Width, pictureBoxThumbnail.Size.Height);
+					MagickImage image = new MagickImage(inMs);
+					//using (MagickImage image = new MagickImage(inMs)) {
+					//change format of image to png
+					image.Format = MagickFormat.Png;
+					//resize image to size of image box
+					image.Resize(pictureBoxThumbnail.Size.Width, pictureBoxThumbnail.Size.Height);
 
-						using (MemoryStream outMs = new MemoryStream()) {
-							image.Write(outMs);
-							outMs.Position = 0;
+					using (MemoryStream outMs = new MemoryStream()) {
+						image.Write(outMs);
+						outMs.Position = 0;
 
-							pictureBoxThumbnail.Image = new Bitmap(outMs);
-						}
+						this.thumbnailSourceImg = image;
+						pictureBoxThumbnail.Image = new Bitmap(outMs);
 					}
+					//}
 				}
 			} catch (OperationCanceledException) {
 				Debug.WriteLine("cancelled thumbnail download");
 			} catch {
 				Debug.WriteLine("Failed to load thumbnail");
+			}
+		}
+
+		private async void ResizeThumbnail() {
+			if (this.thumbnailSourceImg == null) { return; }
+
+			IMagickImage resizedImg; //IMagickImage?
+			using (MemoryStream ms = new MemoryStream()) {
+				await this.thumbnailSourceImg.WriteAsync(ms);
+				ms.Position = 0;
+				resizedImg = new MagickImage(ms);
+			}
+			resizedImg.Resize(pictureBoxThumbnail.Size.Width, pictureBoxThumbnail.Size.Height);
+			//this.thumbnailSourceImg.Resize(pictureBoxThumbnail.Size.Width, pictureBoxThumbnail.Size.Height);
+
+			using (MemoryStream memoryStream = new MemoryStream()) {
+				//await this.thumbnailSourceImg.WriteAsync(memoryStream);
+				await resizedImg.WriteAsync(memoryStream);
+
+				this.pictureBoxThumbnail.Image = new Bitmap(memoryStream);
 			}
 		}
 
@@ -622,6 +647,7 @@ namespace Y2U {
 		private void Form1_SizeChanged(object sender, EventArgs e) {
 			resizeThumbnailLoader.Stop();
 			resizeThumbnailLoader.Start();
+			//ResizeThumbnail();
 		}
 	}
 }
