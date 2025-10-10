@@ -26,8 +26,8 @@ namespace Y2U {
 		private bool isUrlValid = false;
 		private string thumbnailUrl = "";
 
-		private string videoPath = "";
-		private string audioPath = "";
+		//private string videoPath = "";
+		//private string audioPath = "";
 
 		private IMagickImage? thumbnailSourceImg = null;
 
@@ -44,7 +44,7 @@ namespace Y2U {
 
 			checkFFmpeg();
 			loadSavedSettings();
-			//LoadThumbnail("https://img3.gelbooru.com//images/a6/c8/a6c8bba909950809911901c9db25a268.png");// little test
+			//LoadThumbnail("https://img4.gelbooru.com//images/1f/e1/1fe18c2f96168b9fa300d3e4298609f0.png");// little test
 
 			debounceTimer.Interval = 250; // in ms
 			debounceTimer.Tick += async (s, e) => { // event will be called when the timer hits the interval
@@ -88,7 +88,7 @@ namespace Y2U {
 			};
 		}
 
-		public Form1(string url, string outputPath, bool isVid, int resolution, string bitrate, bool downloadThumbnail) : this() {
+		public Form1(string url, string outputPath, int downloadType, int resolution, string bitrate, bool downloadThumbnail) : this() {
 			textBoxUrl.Text = url;
 			textBoxSavePath.Text = outputPath;
 
@@ -123,7 +123,7 @@ namespace Y2U {
 					break;
 			}
 			Debug.WriteLine("instant downloading!");
-			InstantDownload(url, isVid, resolution, bitrate);
+			InstantDownload(url, downloadType, resolution, bitrate);
 		}
 
 		private void loadSavedSettings() {
@@ -146,20 +146,24 @@ namespace Y2U {
 		private void disableDownloadButtons() {
 			buttonDownloadAudio.UseWaitCursor = true;
 			buttonDownloadVideo.UseWaitCursor = true;
+			buttonDownloadThumbnail.UseWaitCursor = true;
 
 			buttonDownloadAudio.Enabled = false;
 			buttonDownloadVideo.Enabled = false;
+			buttonDownloadThumbnail.Enabled = false;
 		}
 
 		private void enableDownloadButtons() {
 			buttonDownloadAudio.UseWaitCursor = false;
 			buttonDownloadVideo.UseWaitCursor = false;
+			buttonDownloadThumbnail.UseWaitCursor = false;
 
 			buttonDownloadAudio.Enabled = true;
 			buttonDownloadVideo.Enabled = true;
+			buttonDownloadThumbnail.Enabled = true;
 		}
 
-		private async void InstantDownload(string url, bool isVid, int resolution, string bitrate) {
+		private async void InstantDownload(string url, int downloadType, int resolution, string bitrate) {
 			// url check
 			//if(!await checkUrlFull(url)) { Console.WriteLine("Invalid Youtube url!"); return; }
 			debounceTimer.Stop();
@@ -176,14 +180,17 @@ namespace Y2U {
 
 			this.userDownloadSelection.overrideAudioSelection = bitrate;
 			this.userDownloadSelection.selectedVideoStreamKey = resolution;
-			Debug.WriteLine($"instant download resoltuion ======================================== {resolution} ========================================");
+			Debug.WriteLine($"instant download resolution ======================================== {resolution} ========================================");
 
-			if (isVid) {
+			if (downloadType == 0) {
 				buttonDownloadVideo.PerformClick();
 				Debug.WriteLine("simulated video download button press");
-			} else {
+			} else if (downloadType == 1) {
 				buttonDownloadAudio.PerformClick();
 				Debug.WriteLine("simulated audio download button press");
+			} else if (downloadType == 2) {
+				buttonDownloadThumbnail.PerformClick();
+				Debug.WriteLine("simulated thumbnail download button press");
 			}
 		}
 
@@ -242,6 +249,20 @@ namespace Y2U {
 
 			MessageBox.Show("FFmpeg failed to launch/could not be found!\n\nMake sure FFmpeg is available in PATH (system environment variables) and relaunch.", "FFmpeg Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			return false;
+		}
+
+		private async Task<bool> preDownloadChecks() {
+			if (status == STATUS_DOWNLOADING) {
+				Debug.WriteLine("already downloading");
+				return false;
+			} else if (status == STATUS_GETTING_STATS) {
+				Debug.WriteLine("busy getting info");
+				return false;
+			}
+			if (!checkUrl()) { return false; }
+			if (!checkSavePath()) { return false; }
+			if (!await checkFFmpeg()) { return false; }
+			return true;
 		}
 
 		#endregion
@@ -446,17 +467,15 @@ namespace Y2U {
 					//using (MagickImage image = new MagickImage(inMs)) {
 					//change format of image to png
 					image.Format = MagickFormat.Png;
+					this.thumbnailSourceImg = image.Clone();
 					//resize image to size of image box
-					image.Resize(pictureBoxThumbnail.Size.Width, pictureBoxThumbnail.Size.Height);
+					image.Resize((uint)pictureBoxThumbnail.Size.Width, (uint)pictureBoxThumbnail.Size.Height);
 
 					using (MemoryStream outMs = new MemoryStream()) {
 						image.Write(outMs);
 						outMs.Position = 0;
-
-						this.thumbnailSourceImg = image;
 						pictureBoxThumbnail.Image = new Bitmap(outMs);
 					}
-					//}
 				}
 			} catch (OperationCanceledException) {
 				Debug.WriteLine("cancelled thumbnail download");
@@ -474,7 +493,7 @@ namespace Y2U {
 				ms.Position = 0;
 				resizedImg = new MagickImage(ms);
 			}
-			resizedImg.Resize(pictureBoxThumbnail.Size.Width, pictureBoxThumbnail.Size.Height);
+			resizedImg.Resize((uint)pictureBoxThumbnail.Size.Width, (uint)pictureBoxThumbnail.Size.Height);
 			//this.thumbnailSourceImg.Resize(pictureBoxThumbnail.Size.Width, pictureBoxThumbnail.Size.Height);
 
 			using (MemoryStream memoryStream = new MemoryStream()) {
@@ -507,16 +526,16 @@ namespace Y2U {
 			disableDownloadButtons();
 
 			labelStatus.Text = "Setup";
-			try {
-				videoPath = Path.GetTempFileName();
-				audioPath = Path.GetTempFileName();
-			} catch (IOException) {
-				Debug.WriteLine("failed to create temporary files for video and/or audio");
-				labelStatus.Text = "Failed to create temporary files";
-				progressBarDownloading.Value = 0;
-				status = STATUS_IDLE;
-				return;
-			}
+			//try {
+			//	videoPath = Path.GetTempFileName();
+			//	audioPath = Path.GetTempFileName();
+			//} catch (IOException) {
+			//	Debug.WriteLine("failed to create temporary files for video and/or audio");
+			//	labelStatus.Text = "Failed to create temporary files";
+			//	progressBarDownloading.Value = 0;
+			//	status = STATUS_IDLE;
+			//	return;
+			//}
 
 			string url = textBoxUrl.Text;
 
@@ -525,7 +544,7 @@ namespace Y2U {
 				labelStatus.Text = p.label;
 			});
 			Debug.WriteLine("Yes, your Highness. I shall download this glorious video for you (c.c.).");
-			await youtube.downloadVideo(progress, this.userDownloadSelection, videoPath, audioPath, textBoxSavePath.Text, cancellationTokenSource);
+			await youtube.downloadVideo(progress, this.userDownloadSelection, textBoxSavePath.Text, cancellationTokenSource);
 
 			status = STATUS_IDLE;
 			enableDownloadButtons();
@@ -558,6 +577,23 @@ namespace Y2U {
 			});
 			await youtube.downloadAudio(progress, this.userDownloadSelection, textBoxSavePath.Text, cancellationTokenSource);
 
+			status = STATUS_IDLE;
+			enableDownloadButtons();
+		}
+
+
+		private async void buttonDownloadThumbnail_Click(object sender, EventArgs e) {
+			if (!await preDownloadChecks()) { return; }
+
+			status = STATUS_DOWNLOADING;
+			progressBarDownloading.Value = 1;
+			progressBarDownloading.Maximum = 2;
+			labelStatus.Text = "Downloading Thumbnail";
+			disableDownloadButtons();
+
+			await youtube.DownloadVideoThumbnail(this.userDownloadSelection, textBoxSavePath.Text, cancellationTokenSource);
+			progressBarDownloading.Value = 2;
+			labelStatus.Text = "Complete";
 			status = STATUS_IDLE;
 			enableDownloadButtons();
 		}

@@ -57,18 +57,18 @@ namespace Y2U {
 		public async Task video() {
 			if (!await Mux.checkFFmpegAvailable()) { Console.WriteLine("Failed to launch FFmpeg, check if its in PATH"); return; }
 
-			string videoPath = "";
-			string audioPath = "";
+			//string videoPath = "";
+			//string audioPath = "";
 
-			try {
-				videoPath = Path.GetTempFileName();
-				audioPath = Path.GetTempFileName();
-			} catch (IOException) {
-				Console.WriteLine("Failed to create temporary files for video and/or audio");
-			}
+			//try {
+			//	videoPath = Path.GetTempFileName();
+			//	audioPath = Path.GetTempFileName();
+			//} catch (IOException) {
+			//	Console.WriteLine("Failed to create temporary files for video and/or audio");
+			//}
 			Console.WriteLine($"Downloading video from {url}");
 
-			await youtube.downloadVideo(progress, this.selection, videoPath, audioPath, outputPath, new CancellationTokenSource());
+			await youtube.downloadVideo(progress, this.selection, outputPath, new CancellationTokenSource());
 		}
 
 		public async Task audio() {
@@ -76,6 +76,11 @@ namespace Y2U {
 
 			Console.WriteLine($"Downloading audio from {url}");
 			await youtube.downloadAudio(progress, this.selection, outputPath, new CancellationTokenSource());
+		}
+
+		public async Task thumbnail() {
+			Console.WriteLine($"Downloading thumbnail from {url}");
+			await youtube.DownloadVideoThumbnail(this.selection, outputPath, new CancellationTokenSource());
 		}
 	}
 }

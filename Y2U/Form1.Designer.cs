@@ -37,7 +37,6 @@
 			labelStatus = new Label();
 			buttonDownloadAudio = new Button();
 			groupBoxDetails = new GroupBox();
-			checkBoxDownloadThumbnail = new CheckBox();
 			labelAudioQuality = new Label();
 			labelTopAudioQualityTitle = new Label();
 			labelVideoQuality = new Label();
@@ -46,6 +45,7 @@
 			labelUploadDateTitle = new Label();
 			labelAuthor = new Label();
 			labelAuthorTitle = new Label();
+			checkBoxDownloadThumbnail = new CheckBox();
 			tabControlQuality = new TabControl();
 			tabPageVideoQuality = new TabPage();
 			radioButton144pVid = new RadioButton();
@@ -63,6 +63,7 @@
 			checkBoxTopQualityAud = new CheckBox();
 			listBoxAudQualities = new ListBox();
 			labelAudQualOptions = new Label();
+			buttonDownloadThumbnail = new Button();
 			((System.ComponentModel.ISupportInitialize)pictureBoxThumbnail).BeginInit();
 			groupBoxDetails.SuspendLayout();
 			tabControlQuality.SuspendLayout();
@@ -172,7 +173,7 @@
 			// progressBarDownloading
 			// 
 			progressBarDownloading.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-			progressBarDownloading.Location = new Point(500, 148);
+			progressBarDownloading.Location = new Point(500, 185);
 			progressBarDownloading.Name = "progressBarDownloading";
 			progressBarDownloading.Size = new Size(400, 25);
 			progressBarDownloading.Step = 1;
@@ -182,7 +183,7 @@
 			// 
 			labelPreStatus.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 			labelPreStatus.AutoSize = true;
-			labelPreStatus.Location = new Point(500, 127);
+			labelPreStatus.Location = new Point(500, 164);
 			labelPreStatus.Name = "labelPreStatus";
 			labelPreStatus.Size = new Size(54, 18);
 			labelPreStatus.TabIndex = 9;
@@ -193,7 +194,7 @@
 			labelStatus.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 			labelStatus.AutoSize = true;
 			labelStatus.Font = new Font("Tahoma", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-			labelStatus.Location = new Point(560, 127);
+			labelStatus.Location = new Point(560, 164);
 			labelStatus.Name = "labelStatus";
 			labelStatus.Size = new Size(38, 18);
 			labelStatus.TabIndex = 10;
@@ -220,7 +221,6 @@
 			// groupBoxDetails
 			// 
 			groupBoxDetails.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-			groupBoxDetails.Controls.Add(checkBoxDownloadThumbnail);
 			groupBoxDetails.Controls.Add(labelAudioQuality);
 			groupBoxDetails.Controls.Add(labelTopAudioQualityTitle);
 			groupBoxDetails.Controls.Add(labelVideoQuality);
@@ -229,24 +229,12 @@
 			groupBoxDetails.Controls.Add(labelUploadDateTitle);
 			groupBoxDetails.Controls.Add(labelAuthor);
 			groupBoxDetails.Controls.Add(labelAuthorTitle);
-			groupBoxDetails.Location = new Point(500, 179);
+			groupBoxDetails.Location = new Point(500, 216);
 			groupBoxDetails.Name = "groupBoxDetails";
-			groupBoxDetails.Size = new Size(400, 242);
+			groupBoxDetails.Size = new Size(400, 205);
 			groupBoxDetails.TabIndex = 12;
 			groupBoxDetails.TabStop = false;
 			groupBoxDetails.Text = "Details";
-			// 
-			// checkBoxDownloadThumbnail
-			// 
-			checkBoxDownloadThumbnail.AutoSize = true;
-			checkBoxDownloadThumbnail.Font = new Font("Tahoma", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-			checkBoxDownloadThumbnail.Location = new Point(6, 218);
-			checkBoxDownloadThumbnail.Name = "checkBoxDownloadThumbnail";
-			checkBoxDownloadThumbnail.Size = new Size(182, 22);
-			checkBoxDownloadThumbnail.TabIndex = 8;
-			checkBoxDownloadThumbnail.Text = "Download Thumbnail";
-			checkBoxDownloadThumbnail.UseVisualStyleBackColor = true;
-			checkBoxDownloadThumbnail.CheckedChanged += checkBoxDownloadThumbnail_CheckedChanged;
 			// 
 			// labelAudioQuality
 			// 
@@ -323,6 +311,18 @@
 			labelAuthorTitle.Size = new Size(63, 18);
 			labelAuthorTitle.TabIndex = 0;
 			labelAuthorTitle.Text = "Author:";
+			// 
+			// checkBoxDownloadThumbnail
+			// 
+			checkBoxDownloadThumbnail.AutoSize = true;
+			checkBoxDownloadThumbnail.Font = new Font("Tahoma", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+			checkBoxDownloadThumbnail.Location = new Point(718, 124);
+			checkBoxDownloadThumbnail.Name = "checkBoxDownloadThumbnail";
+			checkBoxDownloadThumbnail.Size = new Size(182, 22);
+			checkBoxDownloadThumbnail.TabIndex = 8;
+			checkBoxDownloadThumbnail.Text = "Download Thumbnail";
+			checkBoxDownloadThumbnail.UseVisualStyleBackColor = true;
+			checkBoxDownloadThumbnail.CheckedChanged += checkBoxDownloadThumbnail_CheckedChanged;
 			// 
 			// tabControlQuality
 			// 
@@ -526,7 +526,6 @@
 			listBoxAudQualities.Font = new Font("Tahoma", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
 			listBoxAudQualities.FormattingEnabled = true;
 			listBoxAudQualities.ItemHeight = 23;
-			listBoxAudQualities.Items.AddRange(new object[] { "456", "asd", "gfhjk", "h", "xcghn" });
 			listBoxAudQualities.Location = new Point(6, 64);
 			listBoxAudQualities.Name = "listBoxAudQualities";
 			listBoxAudQualities.Size = new Size(212, 165);
@@ -543,11 +542,31 @@
 			labelAudQualOptions.TabIndex = 12;
 			labelAudQualOptions.Text = "Quality Options:";
 			// 
+			// buttonDownloadThumbnail
+			// 
+			buttonDownloadThumbnail.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+			buttonDownloadThumbnail.BackColor = Color.Red;
+			buttonDownloadThumbnail.Cursor = Cursors.Hand;
+			buttonDownloadThumbnail.FlatAppearance.BorderSize = 0;
+			buttonDownloadThumbnail.FlatStyle = FlatStyle.Flat;
+			buttonDownloadThumbnail.Font = new Font("Tahoma", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+			buttonDownloadThumbnail.ForeColor = Color.White;
+			buttonDownloadThumbnail.Location = new Point(500, 121);
+			buttonDownloadThumbnail.Margin = new Padding(3, 4, 3, 4);
+			buttonDownloadThumbnail.Name = "buttonDownloadThumbnail";
+			buttonDownloadThumbnail.Size = new Size(212, 27);
+			buttonDownloadThumbnail.TabIndex = 14;
+			buttonDownloadThumbnail.Text = "Download Thumbnail";
+			buttonDownloadThumbnail.UseVisualStyleBackColor = false;
+			buttonDownloadThumbnail.Click += buttonDownloadThumbnail_Click;
+			// 
 			// Form1
 			// 
 			AutoScaleDimensions = new SizeF(8F, 18F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(1138, 433);
+			Controls.Add(buttonDownloadThumbnail);
+			Controls.Add(checkBoxDownloadThumbnail);
 			Controls.Add(tabControlQuality);
 			Controls.Add(groupBoxDetails);
 			Controls.Add(buttonDownloadAudio);
@@ -631,5 +650,6 @@
 		private RadioButton radioButton8;
 		private TextBox textBoxAudioQualityHelp;
 		private CheckBox checkBoxDownloadThumbnail;
+		private Button buttonDownloadThumbnail;
 	}
 }

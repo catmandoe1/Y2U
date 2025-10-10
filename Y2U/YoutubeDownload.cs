@@ -61,7 +61,7 @@ namespace Y2U {
 		/// <param name="savePath">full path including filename</param>
 		/// <param name="cancellationTokenSource">Used to safely cancel a download once already started</param>
 		/// <returns></returns>
-		public async Task downloadVideo(IProgress<DownloadProgress>? progress, DownloadSelection streamSelections, string videoPath, string audioPath, string savePath, CancellationTokenSource cancellationTokenSource) {
+		public async Task downloadVideo(IProgress<DownloadProgress>? progress, DownloadSelection streamSelections, string savePath, CancellationTokenSource cancellationTokenSource) {
 			try {
 				//Video video = await YoutubeClient.Videos.GetAsync(url, cancellationTokenSource.Token);
 				Debug.WriteLine("downloading video : " + streamSelections.video.Title);
@@ -77,6 +77,7 @@ namespace Y2U {
 
 				// video
 				IVideoStreamInfo videoStreamInfo = streamSelections.GetVideoStream();//streamManifest.GetVideoOnlyStreams().GetWithHighestVideoQuality();
+				string videoPath = Path.Join(savePath, Mux.sanitizeFileName(streamSelections.video.Title) + "_video." + videoStreamInfo.Container.ToString());
 				Debug.WriteLine($"using video stream {videoStreamInfo.VideoQuality.Label} for video download");
 
 				//progress
@@ -92,6 +93,7 @@ namespace Y2U {
 
 				//audio
 				IStreamInfo audioStreamInfo = streamSelections.getAudioStream();//streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
+				string audioPath = Path.Join(savePath, Mux.sanitizeFileName(streamSelections.video.Title) + "_audio." + audioStreamInfo.Container.ToString());
 				Debug.WriteLine($"using audio stream {audioStreamInfo.Bitrate} for video download");
 
 				//progress
@@ -134,7 +136,7 @@ namespace Y2U {
 
 			} catch (OperationCanceledException) {
 				Debug.WriteLine("cancelled download");
-				DeleteTempFiles(videoPath, audioPath);
+				//DeleteTempFiles(videoPath, audioPath);
 
 			// for extra unexpected stuff
 			} catch (Exception ex) {
